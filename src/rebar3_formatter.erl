@@ -84,8 +84,7 @@ format(File, AST, Formatter, Comments, Opts) ->
                   OutputDir ->
                       filename:join(filename:absname(OutputDir), File)
                 end,
-    ok = filelib:ensure_dir(FinalFile),
-    ExtendedAST = AST ++ [{eof, 0}],
+    ExtendedAST = append_empty_line(AST, Opts),
     WithComments = erl_recomment:recomment_forms(erl_syntax:form_list(ExtendedAST), Comments),
     Formatted = Formatter:format(WithComments, empty_lines(File), Opts),
     ok = file:write_file(FinalFile, Formatted),
@@ -106,4 +105,9 @@ empty_lines(File) ->
                            {[], 1},
                            List),
     lists:reverse(Res).
+
+append_empty_line(AST, #{append_empty_line := false}) ->
+    AST;
+append_empty_line(AST, _Opts) ->
+    AST ++ [{eof, 0}].
 
